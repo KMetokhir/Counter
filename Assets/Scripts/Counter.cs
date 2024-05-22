@@ -4,40 +4,51 @@ using UnityEngine;
 
 public class Counter : MonoBehaviour
 {
-    public event Action<int> ValueChanged;
-
     private int _currentNumber;
     private float _waitingInterval;
     private bool _isRunning;
+    private Coroutine _countCoroutine;
+
+    private KeyCode _startPauseButton = KeyCode.Mouse0;
+
+    public event Action<int> ValueChanged;
 
     private void Awake()
     {
         _currentNumber = 0;
         _waitingInterval = 0.5f;
         _isRunning = false;
-
-        StartCoroutine(Count(_waitingInterval));
     }
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetKeyDown(_startPauseButton))
         {
-            _isRunning = !_isRunning;
+            _isRunning = !_isRunning;            
 
-            StartCoroutine(Count(_waitingInterval));
+            if (_isRunning == false)
+            {
+                if (_countCoroutine != null)
+                {
+                    StopCoroutine(_countCoroutine);
+                }
+            }
+            else 
+            {
+                _countCoroutine = StartCoroutine(Count());
+            }            
         }
     }
 
-    private IEnumerator Count(float waitingInterval)
+    private IEnumerator Count()
     {
-        WaitForSeconds waitingTime = new WaitForSeconds(waitingInterval);
+        WaitForSeconds waitingTime = new WaitForSeconds(_waitingInterval);
 
         while (_isRunning)
         {
             _currentNumber++;
             ValueChanged?.Invoke(_currentNumber);
-            
+
             yield return waitingTime;
         }
     }
